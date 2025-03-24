@@ -1,7 +1,8 @@
 # main.py
+import numpy as np
 
-from database import numpy_compat  # Ensure this is imported before other modules
-
+if not hasattr(np, "bool8"):
+    np.bool8 = np.bool_
 import os
 import base64
 import io

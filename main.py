@@ -1,4 +1,8 @@
 # main.py
+import numpy as np
+
+if not hasattr(np, "bool8"):
+    np.bool8 = np.bool_
 import os
 import base64
 import io
@@ -6,7 +10,8 @@ import math
 from flask import Flask, render_template, Response, redirect, request, session, abort, url_for
 #from camera import VideoCamera
 from camera2 import VideoCamera2
-
+# Database connectivity removed:
+# import mysql.connector
 import hashlib
 import datetime
 import calendar
@@ -19,7 +24,7 @@ import cv2
 import cv2 as cv
 import matplotlib.pyplot as plt
 import pandas as pd
-import numpy as np
+import numpy as np  # already imported above, but reimporting won't hurt
 import shutil
 import imagehash
 from werkzeug.utils import secure_filename
@@ -38,7 +43,6 @@ import warnings
 warnings.filterwarnings('ignore')
 
 plt.style.use('fivethirtyeight')
-#%matplotlib inline
 pd.set_option('display.max_columns', 26)
 ##
 from PIL import Image, ImageOps
@@ -77,7 +81,7 @@ def login():
     if request.method == 'POST':
         uname = request.form['uname']
         pwd = request.form['pass']
-        # Dummy login logic: allow only if both username and password are 'admin'
+        # Dummy login logic: allow only if username and password are 'admin'
         if uname == "admin" and pwd == "admin":
             session['username'] = uname
             return redirect(url_for('admin'))
@@ -91,10 +95,10 @@ def login_user():
     if request.method == 'POST':
         uname = request.form['uname']
         pwd = request.form['pass']
-        # Dummy login logic for regular users: allow only if both are 'demo'
+        # Dummy login logic for general users: allow only if both are 'demo'
         if uname == "demo" and pwd == "demo":
             session['username'] = uname
-            # Write dummy mobile numbers for demonstration
+            # Write dummy mobile number for demonstration
             with open("mob.txt", "w") as ff:
                 ff.write("0000000000")
             return redirect(url_for('userhome'))
@@ -108,7 +112,7 @@ def register():
     now = datetime.datetime.now()
     rdate = now.strftime("%d-%m-%Y")
     if request.method == 'POST':
-        # Get form fields (dummy logic for demo)
+        # Get form fields (dummy logic; no actual storage)
         name = request.form['name']
         mobile = request.form['mobile']
         email = request.form['email']
@@ -123,6 +127,7 @@ def add_caretaker():
     now = datetime.datetime.now()
     rdate = now.strftime("%d-%m-%Y")
     if request.method == 'POST':
+        # Get caretaker information (dummy logic)
         name = request.form['name']
         mobile = request.form['mobile']
         childname = request.form['childname']
@@ -151,25 +156,25 @@ def kmeans_color_quantization(image, clusters=8, rounds=1):
 
 @app.route('/admin', methods=['GET', 'POST'])
 def admin():
-    # Simulated image processing routine (the code executes image pre-processing)
+    # Simulated image processing routine; no database connection
     if request.method == 'POST':
         path_main = 'static/dataset'
         for fname in os.listdir(path_main):
-            # Preprocess image
+            ## Preprocess
             path = os.path.join("static/dataset", fname)
             path2 = os.path.join("static/training", fname)
             mm2 = PIL.Image.open(path).convert('L')
             rz = mm2.resize((400, 300), PIL.Image.ANTIALIAS)
-            # Optionally, save resized image:
+            # Optionally, save the resized image:
             # rz.save(path2)
             
-            # Example: denoising simulation
+            # Denoising simulation
             img = cv2.imread(os.path.join("static/training", fname))
             if img is None:
                 continue
             dst = cv2.fastNlMeansDenoisingColored(img, None, 10, 10, 7, 15)
             fname2 = 'ns_' + fname
-            # Optionally save the denoised image:
+            # Optionally, save the denoised image:
             # cv2.imwrite(os.path.join("static/training", fname2), dst)
             
             # RPN - Segment
@@ -469,7 +474,6 @@ def classify():
 
     return render_template('classify.html', msg=msg, cname=cname, data2=data2)
 
-
 # Feature extraction - Feature Fusion Neural Network
 def FeatureFusion():
     from tensorflow.keras.preprocessing.image import ImageDataGenerator
@@ -523,17 +527,16 @@ def GABOR_Features(img):
     return np.reshape(histograms, (-1))
 
 ########################
-# Process route updated to remove database dependencies
+# Process route updated to remove database dependencies; using dummy data.
 @app.route('/process', methods=['GET', 'POST'])
 def process():
-    # Simulate dummy values for user and caretaker info
+    # Dummy data for simulation
     name = "DummyUser"
     child = "DummyChild"
-    name2 = "DummyCareTaker"
+    name2 = "DummyCaretaker"
     mobile = "1111111111"
     mobile2 = "2222222222"
     
-    # Read the detect flag from check.txt
     with open("check.txt", "r") as ff:
         detect = ff.read().strip()
     
@@ -550,9 +553,8 @@ def process():
         mess = "Child: " + child + ", Care Taker: " + name2 + " Drowning Alert"
         mess2 = "Child: " + child + ", Drowning Alert"
             
-    return render_template('process.html', name=name, mess=mess, mess2=mess2,
-                           mobile=mobile, name2=name2, mobile2=mobile2, sms=sms, s1=s1)
-
+    return render_template('process.html', name=name, mess=mess, mess2=mess2, mobile=mobile, name2=name2, mobile2=mobile2, sms=sms, s1=s1)
+  
 @app.route('/test_pro', methods=['GET', 'POST'])
 def test_pro():
     msg = ""
@@ -583,7 +585,6 @@ def test_pro():
         break
     result = cv2.bitwise_and(original, original, mask=mask)
     result[mask == 0] = (0, 0, 0)
-    # The result image could be saved if needed
     return render_template('test_pro.html', msg=msg, fn=fn, ts=ts, act=act)
 
 @app.route('/test_pro2', methods=['GET', 'POST'])
@@ -620,6 +621,7 @@ def video_feed():
     return Response(gen(VideoCamera()), mimetype='multipart/x-mixed-replace; boundary=frame')
 '''
 ##########################
+
 @app.route('/logout')
 def logout():
     # Remove the username from the session if it exists
